@@ -1,0 +1,71 @@
+;;
+;;  Lispy standard library
+;;
+
+; Atoms
+(def {nil} {})
+(def {true} 1)
+(def {false} 0)
+
+; Function definitions
+(def {fun} (\ {f b} {def (head f) (\ (tail f) b)}))
+
+; Unpack list for function
+(fun {unpack f lst} {
+  eval (join (list f) lst)
+})
+
+; Pack list for function
+(fun {pack f & xs} {f xs})
+
+; Perform several things in sequence
+(fun {do & lst} {
+  if (== lst nil)
+    {nil}
+    {last lst}
+})
+
+; Open new scope
+(fun {let b} {
+  ((\ {_} b) ())
+})
+
+; Logical functions, inputs 0 or 1
+(fun {not x}   {- 1 x})
+(fun {or x y}  {+ x y})
+(fun {and x y} {* x y})
+
+; Miscellaneous functions
+(fun {flip f a b} {f b a})
+(fun {ghost & xs} {eval xs})
+(fun {comp f g x} {f (g x)})
+
+; First, Second, or Third Item in List
+(fun {fst l} { eval (head l) })
+(fun {snd l} { eval (head (tail l)) })
+(fun {trd l} { eval (head (tail (tail l))) })
+
+; Lenght of a list
+(fun {len lst} {
+  if (== lst nil)
+    {0}
+    {+ 1 (len (tail lst))}
+})
+
+; Nth item in list
+(fun {nth n lst} {
+  if (== n 0)
+    {fst lst}
+    {nth (- n 1) (tail lst)}
+})
+
+; Last item in list
+(fun {last lst} {nth (- (len lst) 1) lst})
+
+; Apply function to all elements from a list
+(fun {map f lst} {
+  if (== lst nil)
+    {nil}
+    {join (list (f (fst lst))) (map f (tail lst))}
+})
+

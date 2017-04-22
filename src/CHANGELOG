@@ -1,0 +1,4 @@
+version 0.15
+- Improved error reporting on loaded files.
+- Improvement, used a union of lval struct
+- Added remainder (%) operator.
