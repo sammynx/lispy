@@ -1233,7 +1233,13 @@ lval* builtin_print(lenv* e, lval* a) {
 
   /* Print each argument followed by a space */
   for (int i = 0; i < a->count; ++i) {
-    lval_print(a->cell[i]);
+
+    /* If string print it without " */
+    if (a->cell[i]->type == LVAL_STR)
+      printf("%s", a->cell[i]->str);
+    else
+      lval_print(a->cell[i]);
+
     putchar(' ');
   }
 
