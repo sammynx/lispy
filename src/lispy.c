@@ -70,7 +70,7 @@ lval* builtin_list(lenv* e, lval* a);
 
 /* Lisp value, Enumeration of possible lval types */
 enum lval_types { LVAL_NUM, LVAL_DBL, LVAL_ERR, LVAL_SYM, LVAL_STR,
-                  LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR };
+                  LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR, LVAL_OK };
 
 
 /* typedef function pointer to builtin function */
@@ -123,6 +123,7 @@ char* ltype_name(int t) {
     case LVAL_STR: return "String";
     case LVAL_SEXPR: return "S-Expression";
     case LVAL_QEXPR: return "Q-Expression";
+    case LVAL_OK: return "OK";
     default: return "Unknown";
   }
 }
@@ -209,6 +210,13 @@ lval* lval_fun(lbuiltin func) {
   lval* v = malloc(sizeof(lval));
   v->type = LVAL_FUN;
   v->builtin = func;
+  return v;
+}
+
+
+lval* lval_ok(void) {
+  lval* v = malloc(sizeof(lval));
+  v->type = LVAL_OK;
   return v;
 }
 
@@ -1143,7 +1151,7 @@ lval* builtin_var(lenv* e, lval* a, char* func) {
   }
 
   lval_del(a);
-  return lval_sexpr();
+  return lval_ok();
 }
 
 
@@ -1187,7 +1195,6 @@ lval* builtin_load(lenv* e, lval* a) {
   mpc_result_t r;
   if (mpc_parse_contents(a->cell[0]->str, Lispy, &r)) {
     /* Count of evaluated expressions */
-    int expr_nr = 1;
 
     /* Read contents */
     lval* expr = lval_read(r.output);
@@ -1199,11 +1206,9 @@ lval* builtin_load(lenv* e, lval* a) {
 
       /* If Evaluation leads to error print it */
       if (x->type == LVAL_ERR) {
-        printf("Expression nr. %d  ", expr_nr);
         lval_println(x);
       }
       lval_del(x);
-      expr_nr++;
     }
 
     /* Delete expressions and arguments */
@@ -1211,7 +1216,7 @@ lval* builtin_load(lenv* e, lval* a) {
     lval_del(a);
 
     /* Return empty list */
-    return lval_sexpr();
+    return lval_ok();
 
   } else {
     /* Get Parse Error as String */
@@ -1246,7 +1251,7 @@ lval* builtin_print(lenv* e, lval* a) {
   putchar('\n');
   lval_del(a);
 
-  return lval_sexpr();
+  return lval_ok();
 }
 
 
