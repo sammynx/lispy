@@ -1,11 +1,11 @@
 # Lispy -- lisp style interpreter
-
-VERSION = 0.15
+#
+GIT_VERSION := $(shell git describe --tags --abbrev=4)
 
 IDIR=../include
 CC=cc
-CPPFLAGS = -DLISPY_VERSION=\"$(VERSION)\" -I$(IDIR)
-CFLAGS = -std=c99 -Wall -Wextra -Og
+CPPFLAGS = -DLISPY_VERSION=\"$(GIT_VERSION)\" -I$(IDIR)
+CFLAGS = -std=c99 -Wall -Wextra -g
 LIBS=-lm -ledit 
 
 ODIR=obj
@@ -21,7 +21,7 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS) $(CPPFLAGS)
 
 lispy: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+	$(CC) -o $@ $^ $(CFLAGS) $(CPPFLAGS) $(LIBS)
 
 .PHONY: clean
 

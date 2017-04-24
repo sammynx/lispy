@@ -1121,7 +1121,7 @@ lval* builtin_var(lenv* e, lval* a, char* func) {
   lval* syms = a->cell[0];
   for (int i = 0; i < syms->count; ++i) {
     LASSERT(a, (syms->cell[i]->type == LVAL_SYM),
-        "Function '%s' cannot define non-symbol. ",
+        "Function '%s' cannot define non-symbol. "
         "Got %s, expected %s.", func,
         ltype_name(syms->cell[i]->type),
         ltype_name(LVAL_SYM));

@@ -69,3 +69,13 @@
     {join (list (f (fst lst))) (map f (tail lst))}
 })
 
+; Check if element is member of a list. if member return 1 else 0
+(fun {ismember x lst} {
+  if (== lst nil)
+    {0}
+    {if (== x (eval (head lst)))
+      {1}
+      {ismember x (tail lst)}
+    }
+})
+

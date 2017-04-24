@@ -1,4 +1,4 @@
-+ 5 2 1
-(join {1} {2 3})
-join a
-print "END"
+(join+ 5 2 1)
+(error "This is an error!")
+(print "END")
+
