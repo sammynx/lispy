@@ -59,6 +59,7 @@ mpc_parser_t* Lispy;
 lval* lval_add(lval* v, lval* x);
 lval* lval_pop(lval* v, int i);
 void lval_print(lval* v);
+lval* lval_eval(lenv* e, lval* v);
 lenv* lenv_new(void);
 void lenv_del(lenv* e);
 lenv* lenv_copy(lenv* e);
@@ -129,10 +130,8 @@ char* ltype_name(int t) {
 }
 
 
-/*** lval functions ***/
+/*** lval type constructors ***/
 
-
-/* lval type constructors */
 
 lval* lval_num(long x) {
   lval* v = malloc(sizeof(lval));
@@ -214,6 +213,20 @@ lval* lval_fun(lbuiltin func) {
 }
 
 
+lval* lval_lambda(lval* formals, lval* body) {
+  lval* v = malloc(sizeof(lval));
+  v->type = LVAL_FUN;
+  v->builtin = NULL;
+
+  /* Build new enviroment */
+  v->env = lenv_new();
+
+  v->formals = formals;
+  v->body = body;
+  return v;
+}
+
+
 lval* lval_ok(void) {
   lval* v = malloc(sizeof(lval));
   v->type = LVAL_OK;
@@ -221,13 +234,15 @@ lval* lval_ok(void) {
 }
 
 
-/* lval operation functions */
+/*** lval operation functions ***/
+
 
 void lval_del(lval* v) {
 
   switch(v->type) {
-    /* Do nothing special for number type */
+    /* Do nothing special for number and ok type */
     case LVAL_NUM: break;
+    case LVAL_OK: break;
     case LVAL_FUN:
        if (!v->builtin) {
          lenv_del(v->env);
@@ -317,6 +332,9 @@ lval* lval_copy(lval* v) {
   x->type = v->type;
 
   switch (v->type) {
+
+    /* Nothing todo for ok type */
+    case LVAL_OK: break;
 
     /* Copy numbers and functions directly */
     case LVAL_FUN:
@@ -542,10 +560,6 @@ lval* lval_take(lval* v, int i) {
 }
 
 
-lval* lval_eval(lenv* e, lval* v);
-lval* builtin(lenv* e, lval* a, char* func);
-
-
 lval* lval_eval_sexpr(lenv* e, lval* v) {
 
   /* Evaluate the children */
@@ -609,20 +623,6 @@ lval* lval_join(lval* x, lval* y) {
 }
 
 
-lval* lval_lambda(lval* formals, lval* body) {
-  lval* v = malloc(sizeof(lval));
-  v->type = LVAL_FUN;
-  v->builtin = NULL;
-
-  /* Build new enviroment */
-  v->env = lenv_new();
-
-  v->formals = formals;
-  v->body = body;
-  return v;
-}
-
-
 int lval_eq(lval* x, lval* y) {
 
   if (x->type != y->type) return 0;
@@ -672,6 +672,7 @@ lenv* lenv_new(void) {
   e->vals = NULL;
   return e;
 }
+
 
 void lenv_del(lenv* e) {
   for (int i = 0; i < e->count; ++i) {
@@ -1161,7 +1162,7 @@ lval* builtin_def(lenv* e, lval* a) {
 
 
 lval* builtin_put(lenv* e, lval* a) {
-  return builtin_var(e, a, "def");
+  return builtin_var(e, a, "=");
 }
 
 
@@ -1173,7 +1174,7 @@ lval* builtin_lambda(lenv* e, lval* a) {
 
   /* Check first q-expression contains only symbols */
   for (int i = 0; i < a->cell[0]->count; ++i) {
-    LASSERT(a, (a->cell[0]->cell[i]->type), ltype_name(LVAL_SYM),
+    LASSERT(a, (a->cell[0]->cell[i]->type == LVAL_SYM),
         "Cannot define non-symbol. Got %s, expected %s.",
         ltype_name(a->cell[0]->cell[i]->type), ltype_name(LVAL_SYM));
   }
@@ -1238,19 +1239,29 @@ lval* builtin_print(lenv* e, lval* a) {
 
   /* Print each argument followed by a space */
   for (int i = 0; i < a->count; ++i) {
-
-    /* If string print it without " */
-    if (a->cell[i]->type == LVAL_STR)
-      printf("%s", a->cell[i]->str);
-    else
-      lval_print(a->cell[i]);
-
+    lval_print(a->cell[i]);
     putchar(' ');
   }
 
   putchar('\n');
   lval_del(a);
 
+  return lval_ok();
+}
+
+
+lval* builtin_show(lenv* e, lval* a) {
+
+  /* Print unescaped strings (as is) */
+  for (int i = 0; i < a->count; ++i) {
+    if (a->cell[i]->type == LVAL_STR) {
+      printf("%s", a->cell[i]->str);
+    } else {
+      lval_print(a->cell[i]);
+    }
+  }
+
+  lval_del(a);
   return lval_ok();
 }
 
@@ -1303,6 +1314,7 @@ void lenv_add_builtins(lenv* e) {
 
   lenv_add_builtin(e, "load", builtin_load);
   lenv_add_builtin(e, "print", builtin_print);
+  lenv_add_builtin(e, "show", builtin_show);
   lenv_add_builtin(e, "error", builtin_error);
 }
 

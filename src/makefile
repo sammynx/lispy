@@ -5,7 +5,7 @@ GIT_VERSION := $(shell git describe --tags --abbrev=4)
 IDIR=../include
 CC=cc
 CPPFLAGS = -DLISPY_VERSION=\"$(GIT_VERSION)\" -I$(IDIR)
-CFLAGS = -std=c99 -Wall -Wextra -g
+CFLAGS = -std=c99 -ggdb -Wall -Wextra
 LIBS=-lm -ledit 
 
 ODIR=obj
