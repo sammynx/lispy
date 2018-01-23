@@ -1,4 +1,0 @@
-(join+ 5 2 1)
-(error "This is an error!")
-(print "END")
-

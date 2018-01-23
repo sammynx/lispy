@@ -23,7 +23,11 @@ $(ODIR)/%.o: %.c $(DEPS)
 lispy: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(CPPFLAGS) $(LIBS)
 
-.PHONY: clean
+.PHONY: install clean
+
+install:
+	install lispy /usr/local/bin
+	install prelude.lspy /usr/local/include/stdlib.lspy
 
 clean:
 	rm -f $(ODIR)/*.o *~ core $(IDIR)/*~ 

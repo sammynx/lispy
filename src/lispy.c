@@ -83,11 +83,11 @@ struct lval {
 
   union {
     /* Basic */
-    long num;
-    double dbl;
     char* err;
     char* sym;
     char* str;
+    long num;
+    double dbl;
 
     /* Function */
     struct {
@@ -107,8 +107,8 @@ struct lval {
 
 
 struct lenv {
-  lenv* par;
   int count;
+  lenv* par;
   char** syms;
   lval** vals;
 };
@@ -1356,7 +1356,7 @@ int main(int argc, char** argv) {
 
     /* Print version and exit information */
     printf("Lispy version %s\n", LISPY_VERSION);
-    puts("Press Ctrl+c to Exit\n");
+    puts("Press Ctrl+d to exit\n");
 
     while (1) {
 
@@ -1364,7 +1364,18 @@ int main(int argc, char** argv) {
       char* input = readline("lispy> ");
 
       /* Add input to history */
-      add_history(input);
+      if (input) {
+
+        /* Do not add empty lines to history */
+        if (*input) {
+          add_history(input);
+        }
+      } else {
+
+        /* EOF send quit program */
+        puts(" Bye...");
+        exit(EXIT_SUCCES);
+      }
 
       /* Attempt to Parse the input */
       mpc_result_t r;
